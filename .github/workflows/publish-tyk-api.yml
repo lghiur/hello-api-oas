@@ -30,7 +30,7 @@ jobs:
       id: extract_query_params
       run: |
         content=$(cat "tyk-manifest.json")
-        query_params=$(echo "$content" | jq -r '.params | to_entries[] | "\(.key)=\(.value)"')
+        query_params=$(echo "$content" | jq -r '.params | to_entries | map("\(.key)=\(.value)") | join("&")')
         echo "QUERY_PARAMS=$query_params" >> $GITHUB_OUTPUT
 
     - name: Iterate over committed files and make requests
