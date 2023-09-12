@@ -23,7 +23,7 @@ jobs:
     - name: Get parent commit SHA
       id: get_parent_commit_sha
       run: |
-        echo "parent_commit_sha=$(git log --pretty=format:%H -n 1)" >> $GITHUB_ENV
+        echo "parent_commit_sha=$(git log --pretty=format:%H -n 1)" >> $GITHUB_OUTPUT
         echo "parent_commit_sha=$(git log --pretty=format:%H -n 1)"
 
     - name: Iterate over committed files and make requests
