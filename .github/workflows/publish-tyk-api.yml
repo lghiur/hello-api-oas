@@ -55,7 +55,7 @@ jobs:
             # Check if API exists with a GET request
             echo "Sending GET request to $BASE_URL$endpoint"
             #response=$(curl --location -v "${BASE_URL}${endpoint}" -H "Authorization:${TOKEN}")
-            response=$(curl -s -v -o -I /dev/null -w "%{http_code}" -X GET -H "Authorization: ${TOKEN}" --location "${BASE_URL}${endpoint}")
+            response=$(curl --http2 -s -v -o -I /dev/null -w "%{http_code}" -X GET -H "Authorization: ${TOKEN}" --location "${BASE_URL}${endpoint}")
             echo "Response: $response"
 
             if [ $response -eq 200 ]; then
