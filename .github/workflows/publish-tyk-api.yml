@@ -13,7 +13,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
       with:
-        fetch-depth: 0
+        fetch-depth: full
 
     - name: Set up environment variables
       run: |
@@ -33,7 +33,7 @@ jobs:
         PARENT_COMMIT_SHA: ${{ steps.get_parent_commit_sha.outputs.parent_commit_sha }}
       run: |
         echo "Start iterating"
-        echo "PARENT COMMIT" $PARENT_COMMIT_SHA
+        echo $PARENT_COMMIT_SHA
         echo HEAD
         git diff-tree --no-commit-id --name-only -r $PARENT_COMMIT_SHA
         for file in $(git diff-tree --no-commit-id --name-only -r $PARENT_COMMIT_SHA); do
