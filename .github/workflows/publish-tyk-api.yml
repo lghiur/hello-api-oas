@@ -3,7 +3,7 @@ name: Update Tyk OAS APIs
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   process_commits:
