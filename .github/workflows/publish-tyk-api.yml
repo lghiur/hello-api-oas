@@ -54,8 +54,8 @@ jobs:
           
             # Check if API exists with a GET request
             echo "Sending GET request to $BASE_URL$endpoint"
-            response=$(curl --location -v "${BASE_URL}${endpoint}" -H "Authorization:${TOKEN}")
-            #response=$(curl -s -v -o /dev/null -w "%{http_code}" -X GET -H "Authorization: $TOKEN" --location "${BASE_URL}${endpoint}")
+            #response=$(curl --location -v "${BASE_URL}${endpoint}" -H "Authorization:${TOKEN}")
+            response=$(curl -s -v -o /dev/null -w "%{http_code}" -X GET -H "Authorization: ac469a3750e4409e4398dab353b6e340" --location "http://fba9-82-77-225-162.ngrok-free.app${endpoint}")
             echo "Response: $response"
 
             if [ $response -eq 200 ]; then
