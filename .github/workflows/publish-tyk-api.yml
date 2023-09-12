@@ -1,0 +1,79 @@
+name: Update Tyk OAS APIs
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  process_commits:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Set up environment variables
+      run: |
+        echo "TOKEN=${{ secrets.API_TOKEN }}" >> $GITHUB_ENV
+        echo "BASE_URL=${{ secrets.BASE_API_URL }}" >> $GITHUB_ENV
+
+    - name: Get parent commit SHA
+      id: get_parent_commit_sha
+      run: |
+        echo "parent_commit_sha=$(git log --pretty=format:%H -n 1)" >> $GITHUB_ENV
+
+    - name: Iterate over committed files and make requests
+      env:
+        TOKEN: ${{ secrets.API_TOKEN }}
+        BASE_URL: ${{ env.BASE_URL }}
+        QUERY_PARAMS: ${{ env.QUERY_PARAMS }}
+        PARENT_COMMIT_SHA: ${{ steps.get_parent_commit_sha.outputs.parent_commit_sha }}
+      run: |
+        echo "Start iterating"
+        echo $PARENT_COMMIT_SHA
+        echo HEAD
+        git diff-tree --no-commit-id --name-only -r $PARENT_COMMIT_SHA
+        for file in $(git diff-tree --no-commit-id --name-only -r $PARENT_COMMIT_SHA); do
+            if [[ $file == *"/"* ]]; then
+              continue
+            fi
+            content=$(cat "$file")
+            echo "Processing file: $file"
+            echo "File content: $content"
+            filename=$(basename -- "$file")
+            filename="${filename%.*}"
+            echo "Processing file: $file"
+            echo "Filename: $filename"
+            importEndpoint="/api/apis/oas/import"
+            endpoint="/api/apis/$filename"
+            echo "Endpoint: $endpoint"
+          
+            # Check if API exists with a GET request
+            echo "Sending GET request to $BASE_URL$endpoint"
+            response=$(curl -s -o /dev/null -w "%{http_code}" -X GET -H "Authorization: $TOKEN" "${BASE_URL}${endpoint}")
+            echo "Response: $response"
+
+            if [ $response -eq 200 ]; then
+              echo "API with ID $filename already exists. Performing PUT request."
+              response=$(curl -s -o /dev/null -w "%{http_code}" -X PATCH -H "Authorization: $TOKEN" -H "Content-Type: application/json" -d "$content" "${BASE_URL}${endpoint}${QUERY_PARAMS}")
+              if [ $response -eq 200 ]; then
+                echo "API has been patched with a new OAS request succeeded."
+              else
+                echo "API Patch request failed with status code $response."
+              fi
+            else
+              echo "API with ID $filename does not exist. Performing IMPORT request."
+              echo "${BASE_URL}${importEndpoint}${QUERY_PARAMS}"
+              # Add apiID query parameter to the POST request
+              response=$(curl -s -o /dev/null -w "%{http_code}" -X POST -H "Authorization: $TOKEN" -H "Content-Type: application/json" -d "$content" "${BASE_URL}${importEndpoint}?apiID=$filename${QUERY_PARAMS}")
+              if [ $response -eq 200 ]; then
+                echo "Import of OAS request succeeded."
+              else
+                echo "Import of OAS request failed with status code $response."
+                echo "Response: $response"
+              fi
+            fi
+        done
