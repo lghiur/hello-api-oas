@@ -11,9 +11,9 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
-        fetch-depth: full
+        fetch-depth: 0
 
     - name: Set up environment variables
       run: |
