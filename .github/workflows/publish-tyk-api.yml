@@ -49,7 +49,7 @@ jobs:
             echo "Processing file: $file"
             echo "Filename: $filename"
             importEndpoint="/api/apis/oas/import"
-            endpoint="/api/apis/$filename"
+            endpoint="/api/apis/oas/$filename"
             echo "Endpoint: $endpoint"
           
             # Check if API exists with a GET request
