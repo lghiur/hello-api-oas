@@ -59,6 +59,7 @@ jobs:
 
             if [ $response -eq 200 ]; then
               echo "API with ID $filename already exists. Performing PUT request."
+              echo "${BASE_URL}${endpoint}${QUERY_PARAMS}"
               response=$(curl -s -o /dev/null -w "%{http_code}" -X PATCH -H "Authorization: $TOKEN" -H "Content-Type: application/json" -d "$content" "${BASE_URL}${endpoint}${QUERY_PARAMS}")
               if [ $response -eq 200 ]; then
                 echo "API has been patched with a new OAS request succeeded."
