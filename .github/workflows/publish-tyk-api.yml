@@ -53,13 +53,13 @@ jobs:
             echo "Endpoint: $endpoint"
           
             # Check if API exists with a GET request
-            echo "Sending GET request to http://f928-82-77-225-162.ngrok-free.app$endpoint"
-            response=$(curl -s -o /dev/null -w "%{http_code}" -X GET -H "Authorization: $TOKEN" "http://f928-82-77-225-162.ngrok-free.app${endpoint}")
+            echo "Sending GET request to $BASE_URL$endpoint"
+            response=$(curl -s -o /dev/null -w "%{http_code}" -X GET -H "Authorization: $TOKEN" "${BASE_URL}${endpoint}")
             echo "Response: $response"
 
             if [ $response -eq 200 ]; then
               echo "API with ID $filename already exists. Performing PUT request."
-              echo "http://f928-82-77-225-162.ngrok-free.app/${endpoint}${QUERY_PARAMS}"
+              echo "${BASE_URL}${endpoint}${QUERY_PARAMS}"
               response=$(curl -s -o /dev/null -w "%{http_code}" -X PATCH -H "Authorization: $TOKEN" -H "Content-Type: application/json" -d "$content" "${BASE_URL}${endpoint}${QUERY_PARAMS}")
               if [ $response -eq 200 ]; then
                 echo "API has been patched with a new OAS request succeeded."
