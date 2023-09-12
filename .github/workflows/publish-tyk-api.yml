@@ -26,12 +26,19 @@ jobs:
         echo "parent_commit_sha=$(git log --pretty=format:%H -n 1)" >> $GITHUB_OUTPUT
         echo "parent_commit_sha=$(git log --pretty=format:%H -n 1)"
 
+    - name: Extract query parameters from tyk-manifest.json
+      id: extract_query_params
+      run: |
+        content=$(cat "tyk-manifest.json")
+        query_params=$(echo "$content" | jq -r '.params | to_entries[] | "\(.key)=\(.value)"')
+        echo "QUERY_PARAMS=$query_params" >> $GITHUB_OUTPUT
+
     - name: Iterate over committed files and make requests
       env:
         TOKEN: ${{ secrets.API_TOKEN }}
         BASE_URL: ${{ secrets.BASE_URL }}
-        QUERY_PARAMS: ${{ env.QUERY_PARAMS }}
         PARENT_COMMIT_SHA: ${{ steps.get_parent_commit_sha.outputs.parent_commit_sha }}
+        QUERY_PARAMS: ${{ steps.extract_query_params.outputs.QUERY_PARAMS }}
       run: |
         echo "Start iterating"
         echo $PARENT_COMMIT_SHA
@@ -39,6 +46,10 @@ jobs:
         git diff-tree --no-commit-id --name-only -r $PARENT_COMMIT_SHA
         for file in $(git diff-tree --no-commit-id --name-only -r $PARENT_COMMIT_SHA); do
             if [[ $file == *"/"* ]]; then
+              continue
+            fi
+            if [[ $file == *"tyk-manifest.json" ]]; then
+              echo "Skipping file: $file"
               continue
             fi
             content=$(cat "$file")
@@ -59,8 +70,8 @@ jobs:
 
             if [ $response -eq 200 ]; then
               echo "API with ID $filename already exists. Performing PUT request."
-              echo "${BASE_URL}${endpoint}${QUERY_PARAMS}"
-              response=$(curl -s -o /dev/null -w "%{http_code}" -X PATCH -H "Authorization: $TOKEN" -H "Content-Type: application/json" -d "$content" "${BASE_URL}${endpoint}${QUERY_PARAMS}")
+              echo "${BASE_URL}${endpoint}"
+              response=$(curl -s -o /dev/null -w "%{http_code}" -X PATCH -H "Authorization: $TOKEN" -H "Content-Type: application/json" -d "$content" "${BASE_URL}${endpoint}?${QUERY_PARAMS}")
               if [ $response -eq 200 ]; then
                 echo "API has been patched with a new OAS request succeeded."
               else
@@ -68,9 +79,9 @@ jobs:
               fi
             else
               echo "API with ID $filename does not exist. Performing IMPORT request."
-              echo "${BASE_URL}${importEndpoint}${QUERY_PARAMS}"
+              echo "${BASE_URL}${importEndpoint}"
               # Add apiID query parameter to the POST request
-              response=$(curl -s -o /dev/null -w "%{http_code}" -X POST -H "Authorization: $TOKEN" -H "Content-Type: application/json" -d "$content" "${BASE_URL}${importEndpoint}?apiID=$filename${QUERY_PARAMS}")
+              response=$(curl -s -o /dev/null -w "%{http_code}" -X POST -H "Authorization: $TOKEN" -H "Content-Type: application/json" -d "$content" "${BASE_URL}${importEndpoint}?apiID=$filename&${QUERY_PARAMS}")
               if [ $response -eq 200 ]; then
                 echo "Import of OAS request succeeded."
               else
