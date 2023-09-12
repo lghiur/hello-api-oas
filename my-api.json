@@ -5,6 +5,22 @@
         "version": "1.0.0"
     },
     "paths": {
+        "/internal": {
+            "get": {
+                "summary": "Read Hello",
+                "operationId": "read_hello_internal_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/hello": {
             "get": {
                 "summary": "Read Hello",
@@ -121,10 +137,7 @@
     },
     "servers": [
         {
-            "url": "https://api.example.com"
-        },
-        {
-            "url": "https://api.staging.example.com"
+            "url": "http://127.0.0.1:8000"
         }
     ]
 }
