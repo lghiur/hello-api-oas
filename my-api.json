@@ -7,7 +7,7 @@
     "paths": {
         "/internal": {
             "get": {
-                "summary": "Read Hello",
+                "summary": "Read Hello ",
                 "operationId": "read_hello_internal_get",
                 "responses": {
                     "200": {
