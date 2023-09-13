@@ -70,6 +70,22 @@
                     }
                 }
             }
+        },
+        "/uuid": {
+            "get": {
+                "summary": "Generate Uuid",
+                "operationId": "generate_uuid_uuid_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {
