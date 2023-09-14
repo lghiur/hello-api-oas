@@ -1,5 +1,7 @@
 {
   "params": {
+    "validateRequest": true,
+    "allowList": true,
     "listenPath": "/demo"
   }
 }
