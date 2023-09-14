@@ -23,6 +23,9 @@
         },
         "/hello": {
             "get": {
+                "tags": [
+                    "f4d54646-f38e-4386-9857-30508ccc6dc6"
+                ],
                 "summary": "Read Hello",
                 "operationId": "read_hello_hello_get",
                 "responses": {
