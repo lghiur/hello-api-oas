@@ -7,6 +7,9 @@
     "paths": {
         "/hello": {
             "get": {
+                "tags": [
+                    "04934dc1-5b84-48f8-8eb3-5a6c5bcdf211"
+                ],
                 "summary": "Read Hello",
                 "operationId": "read_hello_hello_get",
                 "responses": {
