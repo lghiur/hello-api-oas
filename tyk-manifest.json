@@ -1,8 +1,5 @@
 {
   "params": {
-    "validateRequest": true,
-    "allowList": true,
-    "listenPath": "/demo",
-    "templateID": "6502cc3086341f41ceeb0c16"
+    "listenPath": "/demo"
   }
 }
