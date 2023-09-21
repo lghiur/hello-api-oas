@@ -35,7 +35,8 @@ jobs:
           params=$(echo "$content" | jq -r ".[\"$api_id\"].params | to_entries | map(\"\(.key)=\(.value|tostring)\") | join(\"&\")")
           query_params["$api_id"]=$params
         done < <(jq -r 'keys[]' "manifest.json")
-        echo "$query_params=${query_params}" >> $GITHUB_OUTPUT
+        echo $query_params
+        echo "$query_params=$query_params" >> $GITHUB_OUTPUT
 
     - name: Iterate over committed files and make requests
       env:
