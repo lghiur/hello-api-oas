@@ -41,7 +41,7 @@ jobs:
         TOKEN: ${{ secrets.API_TOKEN }}
         BASE_URL: ${{ secrets.BASE_URL }}
         PARENT_COMMIT_SHA: ${{ steps.get_parent_commit_sha.outputs.parent_commit_sha }}
-        QUERY_PARAMS: ${{ steps.extract_query_params.outputs }}
+        QUERY_PARAMS: ${{ steps.extract_query_params.outputs.* }}
       run: |
         echo "Start iterating"
         echo $PARENT_COMMIT_SHA
@@ -64,8 +64,10 @@ jobs:
             echo "Filename: $filename"
             importEndpoint="/api/apis/oas/import"
             endpoint="/api/apis/oas/$filename"
-            echo "Endpoint: $endpoint"
-            echo $QUERY_PARAMS["$filename"]
+            echo "Endpoint: $BASE_URL$endpoint"
+            for file in "${QUERY_PARAMS[@]}"; do
+              echo "Processing $file"
+            done
           
             # Check if API exists with a GET request
             echo "Sending GET request to $BASE_URL$endpoint"
