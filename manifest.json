@@ -1,8 +1,16 @@
 {
-  "params": {
-    "listenPath": "/demo",
-    "validateRequest": true,
-    "allowList": true,
-    "templateID": "65085e4f86341f0f820173d6"
+  "my-api": {
+    "params": {
+      "listenPath": "/demo",
+      "validateRequest": true,
+      "allowList": true
+    }
+  },
+  "my-api-two": {
+    "params": {
+      "listenPath": "/demo2",
+      "validateRequest": true,
+      "allowList": true
+    }
   }
 }

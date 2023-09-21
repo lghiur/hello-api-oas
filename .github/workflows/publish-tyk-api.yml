@@ -30,15 +30,21 @@ jobs:
       id: extract_query_params
       run: |
         content=$(cat "manifest.json")
-        query_params=$(echo "$content" | jq -r '.params | to_entries | map("\(.key)=\(.value)") | join("&")')
-        echo "QUERY_PARAMS=$query_params" >> $GITHUB_OUTPUT
+        declare -A query_params
+        while IFS= read -r -d '' api_id; do
+          params=$(echo "$content" | jq -r ".[\"$api_id\"].params | to_entries | map(\"\(.key)=\(.value)\") | join(\"&\")")
+          query_params["$api_id"]=$params
+        done < <(jq -r 'keys[]' "manifest.json")
+        for api_id in "${!query_params[@]}"; do
+          echo "$api_id=${query_params[$api_id]}" >> $GITHUB_OUTPUT
+        done
 
     - name: Iterate over committed files and make requests
       env:
         TOKEN: ${{ secrets.API_TOKEN }}
         BASE_URL: ${{ secrets.BASE_URL }}
         PARENT_COMMIT_SHA: ${{ steps.get_parent_commit_sha.outputs.parent_commit_sha }}
-        QUERY_PARAMS: ${{ steps.extract_query_params.outputs.QUERY_PARAMS }}
+        QUERY_PARAMS: ${{ steps.extract_query_params.outputs }}
       run: |
         echo "Start iterating"
         echo $PARENT_COMMIT_SHA
@@ -71,7 +77,7 @@ jobs:
             if [ $response -eq 200 ]; then
               echo "API with ID $filename already exists. Performing PATCH request."
               echo "${BASE_URL}${endpoint}"
-              response=$(curl -s -o /dev/null -w "%{http_code}" -X PATCH -H "Authorization: $TOKEN" -H "Content-Type: application/json" -d "$content" "${BASE_URL}${endpoint}?${QUERY_PARAMS}")
+              response=$(curl -s -o /dev/null -w "%{http_code}" -X PATCH -H "Authorization: $TOKEN" -H "Content-Type: application/json" -d "$content" "${BASE_URL}${endpoint}?${QUERY_PARAMS[$filename]}")
               if [ $response -eq 200 ]; then
                 echo "API has been patched with a new OAS request succeeded."
               else
@@ -81,7 +87,7 @@ jobs:
               echo "API with ID $filename does not exist. Performing IMPORT request."
               echo "${BASE_URL}${importEndpoint}"
               # Add apiID query parameter to the POST request
-              response=$(curl -s -o /dev/null -w "%{http_code}" -X POST -H "Authorization: $TOKEN" -H "Content-Type: application/json" -d "$content" "${BASE_URL}${importEndpoint}?apiID=$filename&${QUERY_PARAMS}")
+              response=$(curl -s -o /dev/null -w "%{http_code}" -X POST -H "Authorization: $TOKEN" -H "Content-Type: application/json" -d "$content" "${BASE_URL}${importEndpoint}?apiID=$filename&${QUERY_PARAMS[$filename]}")
               if [ $response -eq 200 ]; then
                 echo "Import of OAS request succeeded."
               else
