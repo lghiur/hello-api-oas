@@ -26,10 +26,10 @@ jobs:
         echo "parent_commit_sha=$(git log --pretty=format:%H -n 1)" >> $GITHUB_OUTPUT
         echo "parent_commit_sha=$(git log --pretty=format:%H -n 1)"
 
-    - name: Extract query parameters from tyk-manifest.json
+    - name: Extract query parameters from manifest.json
       id: extract_query_params
       run: |
-        content=$(cat "tyk-manifest.json")
+        content=$(cat "manifest.json")
         query_params=$(echo "$content" | jq -r '.params | to_entries | map("\(.key)=\(.value)") | join("&")')
         echo "QUERY_PARAMS=$query_params" >> $GITHUB_OUTPUT
 
@@ -48,7 +48,7 @@ jobs:
             if [[ $file == *"/"* ]]; then
               continue
             fi
-            if [[ $file == *"tyk-manifest.json" ]]; then
+            if [[ $file == *"manifest.json" ]]; then
               echo "Skipping file: $file"
               continue
             fi
