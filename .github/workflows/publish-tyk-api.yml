@@ -35,17 +35,14 @@ jobs:
           params=$(echo "$content" | jq -r ".[\"$api_id\"].params | to_entries | map(\"\(.key)=\(.value|tostring)\") | join(\"&\")")
           query_params["$api_id"]=$params
         done < <(jq -r 'keys[]' "manifest.json")
-        for api_id in "${!query_params[@]}"; do
-          echo $query_params[$api_id]
-          echo "$api_id=${query_params[$api_id]}" >> $GITHUB_OUTPUT
-        done
+        echo "$query_params=${query_params}" >> $GITHUB_OUTPUT
 
     - name: Iterate over committed files and make requests
       env:
         TOKEN: ${{ secrets.API_TOKEN }}
         BASE_URL: ${{ secrets.BASE_URL }}
         PARENT_COMMIT_SHA: ${{ steps.get_parent_commit_sha.outputs.parent_commit_sha }}
-        QUERY_PARAMS: ${{ steps.extract_query_params.outputs }}
+        QUERY_PARAMS: ${{ steps.extract_query_params.outputs.query_params }}
       run: |
         echo "Start iterating"
         echo $PARENT_COMMIT_SHA
