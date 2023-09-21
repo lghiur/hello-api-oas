@@ -65,6 +65,7 @@ jobs:
             importEndpoint="/api/apis/oas/import"
             endpoint="/api/apis/oas/$filename"
             echo "Endpoint: $endpoint"
+            echo $QUERY_PARAMS["$filename"]
           
             # Check if API exists with a GET request
             echo "Sending GET request to $BASE_URL$endpoint"
