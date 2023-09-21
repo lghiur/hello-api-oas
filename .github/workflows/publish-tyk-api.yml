@@ -30,20 +30,18 @@ jobs:
       run: |
         content=$(cat "manifest.json")
         echo $content
-        declare -A query_params
+        declare -A temp_query_params
         while IFS= read -r api_id; do
           params=$(echo "$content" | jq -r ".[\"$api_id\"].params | to_entries | map(\"\(.key)=\(.value|tostring)\") | join(\"&\")")
-          query_params["$api_id"]=$params
+        echo "$api_id=${params}" >> $GITHUB_OUTPUT
         done < <(jq -r 'keys[]' "manifest.json")
-        echo $query_params
-        echo "$query_params=$query_params" >> $GITHUB_OUTPUT
 
     - name: Iterate over committed files and make requests
       env:
         TOKEN: ${{ secrets.API_TOKEN }}
         BASE_URL: ${{ secrets.BASE_URL }}
         PARENT_COMMIT_SHA: ${{ steps.get_parent_commit_sha.outputs.parent_commit_sha }}
-        QUERY_PARAMS: ${{ steps.extract_query_params.outputs.query_params }}
+        QUERY_PARAMS: ${{ steps.extract_query_params.outputs }}
       run: |
         echo "Start iterating"
         echo $PARENT_COMMIT_SHA
