@@ -69,7 +69,7 @@ jobs:
             echo "Response: $response"
 
             if [ $response -eq 200 ]; then
-              echo "API with ID $filename already exists. Performing PUT request."
+              echo "API with ID $filename already exists. Performing PATCH request."
               echo "${BASE_URL}${endpoint}"
               response=$(curl -s -o /dev/null -w "%{http_code}" -X PATCH -H "Authorization: $TOKEN" -H "Content-Type: application/json" -d "$content" "${BASE_URL}${endpoint}?${QUERY_PARAMS}")
               if [ $response -eq 200 ]; then
