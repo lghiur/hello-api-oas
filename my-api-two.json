@@ -5,22 +5,6 @@
         "version": "1.0.0"
     },
     "paths": {
-        "/internal-two": {
-            "get": {
-                "summary": "Read Hello",
-                "operationId": "read_hello_internal_two_get",
-                "responses": {
-                    "200": {
-                        "description": "Successful Response",
-                        "content": {
-                            "application/json": {
-                                "schema": {}
-                            }
-                        }
-                    }
-                }
-            }
-        },
         "/hello": {
             "get": {
                 "summary": "Read Hello",
