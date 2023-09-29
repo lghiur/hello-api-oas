@@ -29,19 +29,29 @@ jobs:
       id: extract_query_params
       run: |
         content=$(cat "manifest.json")
-        echo $content
-        declare -A temp_query_params
+        declare -A output_array
+
         while IFS= read -r api_id; do
           params=$(echo "$content" | jq -r ".[\"$api_id\"].params | to_entries | map(\"\(.key)=\(.value|tostring)\") | join(\"&\")")
-        echo "$api_id=${params}" >> $GITHUB_OUTPUT
+          output_array["$api_id"]="$params"
         done < <(jq -r 'keys[]' "manifest.json")
+
+        # Convert output_array to a JSON object
+        json_output="{"
+        for key in "${!output_array[@]}"; do
+          json_output+="\"$key\":\"${output_array[$key]}\","
+        done
+        # Remove the trailing comma
+        json_output=${json_output%,}
+        json_output+="}"
+        echo "queryParams=$json_output" >> $GITHUB_OUTPUT
 
     - name: Iterate over committed files and make requests
       env:
         TOKEN: ${{ secrets.API_TOKEN }}
         BASE_URL: ${{ secrets.BASE_URL }}
         PARENT_COMMIT_SHA: ${{ steps.get_parent_commit_sha.outputs.parent_commit_sha }}
-        QUERY_PARAMS: ${{ steps.extract_query_params.outputs.* }}
+        QUERY_PARAMS: ${{ steps.extract_query_params.outputs.queryParams }}
       run: |
         echo "Start iterating"
         echo $PARENT_COMMIT_SHA
@@ -57,7 +67,7 @@ jobs:
             fi
             content=$(cat "$file")
             echo "Processing file: $file"
-            echo "File content: $content"
+            #echo "File content: $content"
             filename=$(basename -- "$file")
             filename="${filename%.*}"
             echo "Processing file: $file"
@@ -65,9 +75,9 @@ jobs:
             importEndpoint="/api/apis/oas/import"
             endpoint="/api/apis/oas/$filename"
             echo "Endpoint: $BASE_URL$endpoint"
-            for file in "${QUERY_PARAMS[@]}"; do
-              echo "Processing $file"
-            done
+            query_params=$(echo "$QUERY_PARAMS" | jq -r ".[\"$filename\"]")
+            echo "QUERY PARAMS"
+            echo $query_params
           
             # Check if API exists with a GET request
             echo "Sending GET request to $BASE_URL$endpoint"
@@ -77,7 +87,7 @@ jobs:
             if [ $response -eq 200 ]; then
               echo "API with ID $filename already exists. Performing PATCH request."
               echo "${BASE_URL}${endpoint}"
-              response=$(curl -s -o /dev/null -w "%{http_code}" -X PATCH -H "Authorization: $TOKEN" -H "Content-Type: application/json" -d "$content" "${BASE_URL}${endpoint}?${QUERY_PARAMS["$filename"]}")
+              response=$(curl -s -o /dev/null -w "%{http_code}" -X PATCH -H "Authorization: $TOKEN" -H "Content-Type: application/json" -d "$content" "${BASE_URL}${endpoint}?${query_params}")
               if [ $response -eq 200 ]; then
                 echo "API has been patched with a new OAS request succeeded."
               else
@@ -87,7 +97,7 @@ jobs:
               echo "API with ID $filename does not exist. Performing IMPORT request."
               echo "${BASE_URL}${importEndpoint}"
               # Add apiID query parameter to the POST request
-              response=$(curl -s -o /dev/null -w "%{http_code}" -X POST -H "Authorization: $TOKEN" -H "Content-Type: application/json" -d "$content" "${BASE_URL}${importEndpoint}?apiID=$filename&${QUERY_PARAMS["$filename"]}")
+              response=$(curl -s -o /dev/null -w "%{http_code}" -X POST -H "Authorization: $TOKEN" -H "Content-Type: application/json" -d "$content" "${BASE_URL}${importEndpoint}?apiID=$filename&${query_params}")
               if [ $response -eq 200 ]; then
                 echo "Import of OAS request succeeded."
               else
