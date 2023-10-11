@@ -3,7 +3,8 @@
     "params": {
       "listenPath": "/demo",
       "validateRequest": true,
-      "allowList": true
+      "allowList": true,
+      "templateID": "65267cd986341fcb72ff20b9"
     }
   },
   "my-api-two": {
