@@ -1,7 +1,8 @@
 {
   "my-api": {
     "params": {
-      "listenPath": "/demo"
+      "listenPath": "/demo",
+      "templateID": "652677a986341fcb72ff20b3"
     }
   },
   "my-api-two": {
