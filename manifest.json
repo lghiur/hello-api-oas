@@ -1,16 +1,12 @@
 {
   "my-api": {
     "params": {
-      "listenPath": "/demo",
-      "validateRequest": true,
-      "allowList": true
+      "listenPath": "/demo"
     }
   },
   "my-api-two": {
     "params": {
-      "listenPath": "/demo2",
-      "validateRequest": true,
-      "allowList": true
+      "listenPath": "/demo2"
     }
   }
 }
