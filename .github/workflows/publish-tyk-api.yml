@@ -83,9 +83,9 @@ jobs:
         echo HEAD
         git diff-tree --no-commit-id --name-only -r $PARENT_COMMIT_SHA
         for file in $(git diff-tree --no-commit-id --name-only -r $PARENT_COMMIT_SHA | grep -E "$FILE_REGEX"); do
-            if [[ $file == *"/"* ]]; then
-              continue
-            fi
+            # if [[ $file == *"/"* ]]; then
+            #   continue
+            # fi
             # if [[ $file == *"manifest.json" ]]; then
             #   echo "Skipping file: $file"
             #   continue
