@@ -16,7 +16,7 @@ jobs:
         fetch-depth: 0
 
     - name: Set up environment variables
-      run: ./path/to/set_env_vars.sh ${{ secrets.API_TOKEN }} ${{ secrets.BASE_API_URL }}
+      run: ./.github/scripts/set_env_vars.sh ${{ secrets.API_TOKEN }} ${{ secrets.BASE_API_URL }}
 
     - name: Get parent commit SHA
       id: get_parent_commit_sha
