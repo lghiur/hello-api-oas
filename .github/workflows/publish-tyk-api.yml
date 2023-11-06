@@ -26,6 +26,7 @@ jobs:
     - name: Extract query parameters from tyk-manifest.json
       run: |
         output=$(./.github/scripts/extract_query_params.sh)
+        echo $output
         echo "queryParams=$(echo "$output" | head -n 1)" >> $GITHUB_OUTPUT
         echo "apiIds=$(echo "$output" | tail -n 1)" >> $GITHUB_OUTPUT
 
