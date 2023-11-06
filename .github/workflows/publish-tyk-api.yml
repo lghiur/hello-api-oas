@@ -19,6 +19,7 @@ jobs:
       run: |
         echo "TOKEN=${{ secrets.API_TOKEN }}" >> $GITHUB_ENV
         echo "BASE_URL=${{ secrets.BASE_API_URL }}" >> $GITHUB_ENV
+        echo "FILE_REGEX=*.oas.yml" >> $GITHUB_ENV
 
     - name: Get parent commit SHA
       id: get_parent_commit_sha
@@ -57,14 +58,14 @@ jobs:
         echo $PARENT_COMMIT_SHA
         echo HEAD
         git diff-tree --no-commit-id --name-only -r $PARENT_COMMIT_SHA
-        for file in $(git diff-tree --no-commit-id --name-only -r $PARENT_COMMIT_SHA); do
+        for file in $(git diff-tree --no-commit-id --name-only -r $PARENT_COMMIT_SHA | grep -E "$FILE_REGEX"); do
             if [[ $file == *"/"* ]]; then
               continue
             fi
-            if [[ $file == *"manifest.json" ]]; then
-              echo "Skipping file: $file"
-              continue
-            fi
+            # if [[ $file == *"manifest.json" ]]; then
+            #   echo "Skipping file: $file"
+            #   continue
+            # fi
             content=$(cat "$file")
             echo "Processing file: $file"
             #echo "File content: $content"
