@@ -1,4 +1,16 @@
 {
+  "my-api-v2.oas": {
+    "api_id": "prct-v2",
+    "params": {
+      "base_api_id": "prct",
+      "base_api_version_name": "v1",
+      "new_api_version_name": "v2",
+      "listenPath": "/demo3",
+      "validateRequest": true,
+      "allowList": true,
+      "templateID": "65267cd986341fcb72ff20b9"
+    }
+  },
   "my-api.oas": {
     "api_id": "prct",
     "params": {
