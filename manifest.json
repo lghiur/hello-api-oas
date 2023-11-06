@@ -8,9 +8,10 @@
       "templateID": "65267cd986341fcb72ff20b9"
     }
   },
-  "my-api-two": {
+  "my-api-two.oas": {
+    "api_id": "laurentiu",
     "params": {
-      "listenPath": "/demo2"
+      "listenPath": "/laurentiu"
     }
   }
 }
