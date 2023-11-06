@@ -20,6 +20,7 @@ jobs:
         echo "TOKEN=${{ secrets.API_TOKEN }}" >> $GITHUB_ENV
         echo "BASE_URL=${{ secrets.BASE_API_URL }}" >> $GITHUB_ENV
         echo "FILE_REGEX=*.oas.json" >> $GITHUB_ENV
+        echo "API_ID_REGEX=^([a-zA-Z0-9_-]+)\.oas\.json$ " >> $GITHUB_ENV
 
     - name: Get parent commit SHA
       id: get_parent_commit_sha
@@ -62,21 +63,21 @@ jobs:
             if [[ $file == *"/"* ]]; then
               continue
             fi
-            # if [[ $file == *"manifest.json" ]]; then
-            #   echo "Skipping file: $file"
-            #   continue
-            # fi
             content=$(cat "$file")
             echo "Processing file: $file"
             #echo "File content: $content"
-            filename=$(basename -- "$file")
-            filename="${filename%.*}"
+            if [[ $string =~ $API_ID_REGEX ]]; then
+              apiID="${BASH_REMATCH[1]}"
+              echo "Extracted ID inside if: $id"
+            else
+              echo "No ID found."
+            fi
             echo "Processing file: $file"
-            echo "Filename: $filename"
+            echo "API ID: $apiID"
             importEndpoint="/api/apis/oas/import"
-            endpoint="/api/apis/oas/$filename"
+            endpoint="/api/apis/oas/$apiID"
             echo "Endpoint: $BASE_URL$endpoint"
-            query_params=$(echo "$QUERY_PARAMS" | jq -r ".[\"$filename\"]")
+            query_params=$(echo "$QUERY_PARAMS" | jq -r ".[\"$apiID\"]")
             echo "QUERY PARAMS"
             echo $query_params
           
@@ -86,7 +87,7 @@ jobs:
             echo "Response: $response"
 
             if [ $response -eq 200 ]; then
-              echo "API with ID $filename already exists. Performing PATCH request."
+              echo "API with ID $apiID already exists. Performing PATCH request."
               echo "${BASE_URL}${endpoint}"
               response=$(curl -s -o /dev/null -w "%{http_code}" -X PATCH -H "Authorization: $TOKEN" -H "Content-Type: application/json" -d "$content" "${BASE_URL}${endpoint}?${query_params}")
               if [ $response -eq 200 ]; then
@@ -95,10 +96,10 @@ jobs:
                 echo "API Patch request failed with status code $response."
               fi
             else
-              echo "API with ID $filename does not exist. Performing IMPORT request."
+              echo "API with ID $apiID does not exist. Performing IMPORT request."
               echo "${BASE_URL}${importEndpoint}"
               # Add apiID query parameter to the POST request
-              response=$(curl -s -o /dev/null -w "%{http_code}" -X POST -H "Authorization: $TOKEN" -H "Content-Type: application/json" -d "$content" "${BASE_URL}${importEndpoint}?apiID=$filename&${query_params}")
+              response=$(curl -s -o /dev/null -w "%{http_code}" -X POST -H "Authorization: $TOKEN" -H "Content-Type: application/json" -d "$content" "${BASE_URL}${importEndpoint}?apiID=$apiID&${query_params}")
               if [ $response -eq 200 ]; then
                 echo "Import of OAS request succeeded."
               else
