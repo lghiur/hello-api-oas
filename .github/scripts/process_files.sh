@@ -1,64 +1,90 @@
 #!/bin/bash
 
-TOKEN=$1
-BASE_URL=$2
-PARENT_COMMIT_SHA=$3
-QUERY_PARAMS=$4
-API_IDS=$5
-FILE_REGEX=$6
+# Check for required arguments
+if [ "$#" -ne 6 ]; then
+    echo "Usage: $0 TOKEN BASE_URL PARENT_COMMIT_SHA QUERY_PARAMS API_IDS FILE_REGEX"
+    exit 1
+fi
 
-echo "Start iterating"
-git diff-tree --no-commit-id --name-only -r $PARENT_COMMIT_SHA
-for file in $(git diff-tree --no-commit-id --name-only -r $PARENT_COMMIT_SHA | grep -E "$FILE_REGEX"); do
-    content=$(cat "$file")
+# Assign arguments to variables
+TOKEN="$1"
+BASE_URL="$2"
+PARENT_COMMIT_SHA="$3"
+QUERY_PARAMS="$4"
+API_IDS="$5"
+FILE_REGEX="$6"
+
+# Function to check if the API exists
+check_api_existence() {
+    local endpoint=$1
+    local token=$2
+
+    status_code=$(curl -s -o /dev/null -w "%{http_code}" -X GET -H "Authorization: $token" --location "$endpoint")
+    echo $status_code
+}
+
+# Function to patch the API
+patch_api() {
+    local endpoint=$1
+    local token=$2
+    local params=$3
+    local data=$4
+
+    response=$(curl -s -o /dev/null -w "%{http_code}" -X PATCH -H "Authorization: $token" -H "Content-Type: application/json" -d "$data" "${endpoint}?${params}")
+    echo $response
+}
+
+# Function to import the API
+import_api() {
+    local endpoint=$1
+    local token=$2
+    local api_id=$3
+    local params=$4
+    local data=$5
+
+    response=$(curl -s -o /dev/null -w "%{http_code}" -X POST -H "Authorization: $token" -H "Content-Type: application/json" -d "$data" "${endpoint}?apiID=$api_id&${params}")
+    echo $response
+}
+
+# Main loop to process files
+echo "Start iterating over files"
+git diff-tree --no-commit-id --name-only -r "$PARENT_COMMIT_SHA"
+files=$(git diff-tree --no-commit-id --name-only -r "$PARENT_COMMIT_SHA" | grep -E "$FILE_REGEX")
+
+for file in $files; do
+    content=$(<"$file")
     echo "Processing file: $file"
-    #echo "File content: $content"
     filename=$(basename -- "$file")
     filename="${filename%.*}"
-    echo $FILE_REGEX
-    echo $file
-    if [[ $file =~ $FILE_REGEX ]]; then
-      apiID="${BASH_REMATCH[1]}"
-      echo "Extracted ID inside if: $apiID"
-    else
-      echo "No ID found."
-    fi
-    echo "Processing file: $file"
-    echo "Filename: $filename"
-    query_params=$(echo "$QUERY_PARAMS" | jq -r ".[\"$filename\"]")
-    echo "QUERY PARAMS"
-    echo $query_params
-    apiID=$(echo "$API_IDS" | jq -r ".[\"$filename\"]")
-    echo "API ID"
-    echo $apiID
-    importEndpoint="/api/apis/oas/import"
-    endpoint="/api/apis/oas/$apiID"
-    echo "Endpoint: $BASE_URL$endpoint"
-  
-    # Check if API exists with a GET request
-    echo "Sending GET request to $BASE_URL$endpoint"
-    response=$(curl -s -o /dev/null -w "%{http_code}" -X GET -H "Authorization: ${TOKEN}" --location "${BASE_URL}${endpoint}")
-    echo "Response: $response"
+    api_id=$(echo "$API_IDS" | jq -r ".[\"$filename\"]")
 
-    if [ $response -eq 200 ]; then
-      echo "API with ID $apiID already exists. Performing PATCH request."
-      echo "${BASE_URL}${endpoint}"
-      response=$(curl -s -o /dev/null -w "%{http_code}" -X PATCH -H "Authorization: $TOKEN" -H "Content-Type: application/json" -d "$content" "${BASE_URL}${endpoint}?${query_params}")
-      if [ $response -eq 200 ]; then
-        echo "API has been patched with a new OAS request succeeded."
-      else
-        echo "API Patch request failed with status code $response."
-      fi
+    echo "API ID: $api_id"
+    query_params=$(echo "$QUERY_PARAMS" | jq -r ".[\"$filename\"]")
+
+    importEndpoint="${BASE_URL}/api/apis/oas/import"
+    endpoint="${BASE_URL}/api/apis/oas/${api_id}"
+
+    echo "Endpoint: $endpoint"
+
+    response=$(check_api_existence "$endpoint" "$TOKEN")
+
+    if [ "$response" -eq 200 ]; then
+        echo "API with ID $api_id already exists. Performing PATCH request."
+        response=$(patch_api "$endpoint" "$TOKEN" "$query_params" "$content")
+        
+        if [ "$response" -eq 200 ]; then
+            echo "API has been patched successfully."
+        else
+            echo "API patch request failed with status code $response."
+        fi
     else
-      echo "API with ID $apiID does not exist. Performing IMPORT request."
-      echo "${BASE_URL}${importEndpoint}"
-      # Add apiID query parameter to the POST request
-      response=$(curl -s -o /dev/null -w "%{http_code}" -X POST -H "Authorization: $TOKEN" -H "Content-Type: application/json" -d "$content" "${BASE_URL}${importEndpoint}?apiID=$apiID&${query_params}")
-      if [ $response -eq 200 ]; then
-        echo "Import of OAS request succeeded."
-      else
-        echo "Import of OAS request failed with status code $response."
-        echo "Response: $response"
-      fi
+        echo "API with ID $api_id does not exist. Performing IMPORT request."
+        response=$(import_api "$importEndpoint" "$TOKEN" "$api_id" "$query_params" "$content")
+        
+        if [ "$response" -eq 200 ]; then
+            echo "Import of OAS was successful."
+        else
+            echo "Import of OAS failed with status code $response."
+        fi
     fi
 done
