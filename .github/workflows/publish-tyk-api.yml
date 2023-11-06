@@ -26,16 +26,16 @@ jobs:
       run: |
         echo "parent_commit_sha=$(git log --pretty=format:%H -n 1)" >> $GITHUB_OUTPUT
 
-    - name: Extract query parameters from manifest.json
+    - name: Extract query parameters from tyk-manifest.json
       id: extract_query_params
       run: |
-        content=$(cat "manifest.json")
+        content=$(cat "tyk-manifest.json")
         # Declare an associative array for query parameters
         declare -A params_array
         # Declare an associative array for api_ids
         declare -A api_ids_array
 
-        # Loop through each key in the manifest.json file
+        # Loop through each key in the tyk-manifest.json file
         while IFS= read -r key; do
           # Extract the api_id for the current key
           api_id=$(echo "$content" | jq -r ".[\"$key\"].api_id")
@@ -83,13 +83,6 @@ jobs:
         echo HEAD
         git diff-tree --no-commit-id --name-only -r $PARENT_COMMIT_SHA
         for file in $(git diff-tree --no-commit-id --name-only -r $PARENT_COMMIT_SHA | grep -E "$FILE_REGEX"); do
-            # if [[ $file == *"/"* ]]; then
-            #   continue
-            # fi
-            # if [[ $file == *"tyk-manifest.json" ]]; then
-            #   echo "Skipping file: $file"
-            #   continue
-            # fi
             content=$(cat "$file")
             echo "Processing file: $file"
             #echo "File content: $content"
