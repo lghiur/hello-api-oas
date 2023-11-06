@@ -63,16 +63,23 @@ jobs:
             if [[ $file == *"/"* ]]; then
               continue
             fi
+            # if [[ $file == *"manifest.json" ]]; then
+            #   echo "Skipping file: $file"
+            #   continue
+            # fi
             content=$(cat "$file")
             echo "Processing file: $file"
             #echo "File content: $content"
-            if [[ $string =~ $API_ID_REGEX ]]; then
+            filename=$(basename -- "$file")
+            filename="${filename%.*}"
+            if [[ $filename =~ $API_ID_REGEX ]]; then
               apiID="${BASH_REMATCH[1]}"
-              echo "Extracted ID inside if: $id"
+              echo "Extracted ID inside if: $apiID"
             else
               echo "No ID found."
             fi
             echo "Processing file: $file"
+            echo "Filename: $filename"
             echo "API ID: $apiID"
             importEndpoint="/api/apis/oas/import"
             endpoint="/api/apis/oas/$apiID"
