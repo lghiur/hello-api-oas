@@ -1,6 +1,6 @@
 {
   "my-api-v2.oas": {
-    "api_id": "prct-v2",
+    "api_id": "prctv2",
     "params": {
       "base_api_id": "prct",
       "base_api_version_name": "v1",
