@@ -86,7 +86,7 @@ jobs:
             # if [[ $file == *"/"* ]]; then
             #   continue
             # fi
-            # if [[ $file == *"manifest.json" ]]; then
+            # if [[ $file == *"tyk-manifest.json" ]]; then
             #   echo "Skipping file: $file"
             #   continue
             # fi

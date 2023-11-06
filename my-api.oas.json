@@ -8,7 +8,7 @@
         "/hello": {
             "get": {
                 "tags": [
-                    "470e5a11-7d71-4c7c-9f74-3f7cb3973e2b"
+                    "aa4cd823-02e0-4511-9399-6735b9c1e281"
                 ],
                 "summary": "Read Hello",
                 "operationId": "read_hello_hello_get",
