@@ -1,28 +1,37 @@
 #!/bin/bash
-content=$(cat "tyk-manifest.json")
-declare -A params_array
-declare -A api_ids_array
 
-while IFS= read -r key; do
-  api_id=$(echo "$content" | jq -r ".[\"$key\"].api_id")
-  params=$(echo "$content" | jq -r ".[\"$key\"].params | to_entries | map(\"\(.key)=\(.value|tostring)\") | join(\"&\")")
+# Fail on any error
+set -e
 
-  params_array["$key"]="$params"
-  api_ids_array["$key"]="$api_id"
-done < <(jq -r 'keys[]' "tyk-manifest.json")
+# Best practice is to define all needed tools and exit if they're not installed
+type jq >/dev/null 2>&1 || { echo >&2 "jq is required but it's not installed. Aborting."; exit 1; }
 
-json_params="{"
-json_api_ids="{" 
+# Ensure the manifest file exists
+manifest_file="tyk-manifest.json"
+if [ ! -f "$manifest_file" ]; then
+    echo "Manifest file $manifest_file does not exist."
+    exit 1
+fi
 
-for key in "${!params_array[@]}"; do
-  json_params+="\"$key\":\"${params_array[$key]}\","
-  json_api_ids+="\"$key\":\"${api_ids_array[$key]}\","
-done
+# Read the content of the manifest file
+content=$(<"$manifest_file")
 
-json_params=${json_params%,}
-json_params+="}"
-json_api_ids=${json_api_ids%,}
-json_api_ids+="}"
+# Build JSON objects for params and api_ids using jq
+read -r -d '' json_params json_api_ids < <(jq -c -M '
+    reduce (keys[] as $key
+    (
+        {}; 
+        .params[$key] = (.[$key].params | to_entries | map("\(.key)=\(.value|tostring)") | join("&")),
+        .api_ids[$key] = .[$key].api_id
+    )
+)' "$manifest_file")
 
-echo "queryParams=${json_params}" >> $GITHUB_OUTPUT
-echo "apiIds=${json_api_ids}" >> $GITHUB_OUTPUT
+# Append generated JSON to the GitHub Actions output file
+{
+    echo "queryParams=${json_params.params}"
+    echo "apiIds=${json_api_ids.api_ids}"
+} >> "$GITHUB_OUTPUT"
+
+# If desired, show the output (for debugging purposes)
+echo "Generated queryParams: $json_params"
+echo "Generated apiIds: $json_api_ids"
