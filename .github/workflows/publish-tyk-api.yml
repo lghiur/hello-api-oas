@@ -19,8 +19,7 @@ jobs:
       run: |
         echo "TOKEN=${{ secrets.API_TOKEN }}" >> $GITHUB_ENV
         echo "BASE_URL=${{ secrets.BASE_API_URL }}" >> $GITHUB_ENV
-        echo "FILE_REGEX=*.oas.json" >> $GITHUB_ENV
-        echo "API_ID_REGEX=^([a-zA-Z0-9_-]+)\.oas\.json$" >> $GITHUB_ENV
+        echo "FILE_REGEX=^([a-zA-Z0-9_-]+)\.oas\.json$" >> $GITHUB_ENV
 
     - name: Get parent commit SHA
       id: get_parent_commit_sha
@@ -72,9 +71,9 @@ jobs:
             #echo "File content: $content"
             filename=$(basename -- "$file")
             filename="${filename%.*}"
-            echo $API_ID_REGEX
+            echo $FILE_REGEX
             echo $file
-            if [[ $file =~ $API_ID_REGEX ]]; then
+            if [[ $file =~ $FILE_REGEX ]]; then
               apiID="${BASH_REMATCH[1]}"
               echo "Extracted ID inside if: $apiID"
             else
