@@ -46,7 +46,7 @@ jobs:
           params_array["$key"]="$params"
           # Store the api_id in the api_ids_array
           api_ids_array["$key"]="$api_id"
-        done < <(jq -r 'keys[]' "manifest.json")
+        done < <(jq -r 'keys[]' "tyk-manifest.json")
 
         # Initialize a string to hold the JSON output for query parameters
         json_params="{"
