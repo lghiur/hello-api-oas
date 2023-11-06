@@ -26,10 +26,6 @@ jobs:
     - name: Extract query parameters from tyk-manifest.json
       run: |
         output=$(./.github/scripts/extract_query_params.sh)
-        echo $(echo "$output" | head -n 1)
-        echo $(echo "$output" | tail -n 1)
-        echo "queryParams=$(echo "$output" | head -n 1)" >> $GITHUB_OUTPUT
-        echo "apiIds=$(echo "$output" | tail -n 1)" >> $GITHUB_OUTPUT
 
     - name: Iterate over committed files and make requests
       env:
