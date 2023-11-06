@@ -24,5 +24,5 @@ json_params+="}"
 json_api_ids=${json_api_ids%,}
 json_api_ids+="}"
 
-echo "queryParams=${json_params}" >> $GITHUB_OUTPUT
-echo "apiIds=${json_api_ids}" >> $GITHUB_OUTPUT
+echo "queryParams=$json_params" >> $GITHUB_OUTPUT
+echo "apiIds=$json_api_ids" >> $GITHUB_OUTPUT
