@@ -72,7 +72,7 @@ jobs:
             #echo "File content: $content"
             filename=$(basename -- "$file")
             filename="${filename%.*}"
-            if [[ $filename =~ $API_ID_REGEX ]]; then
+            if [[ $file =~ $API_ID_REGEX ]]; then
               apiID="${BASH_REMATCH[1]}"
               echo "Extracted ID inside if: $apiID"
             else
