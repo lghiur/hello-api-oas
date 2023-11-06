@@ -30,22 +30,45 @@ jobs:
       id: extract_query_params
       run: |
         content=$(cat "manifest.json")
-        declare -A output_array
+        # Declare an associative array for query parameters
+        declare -A params_array
+        # Declare an associative array for api_ids
+        declare -A api_ids_array
 
-        while IFS= read -r api_id; do
-          params=$(echo "$content" | jq -r ".[\"$api_id\"].params | to_entries | map(\"\(.key)=\(.value|tostring)\") | join(\"&\")")
-          output_array["$api_id"]="$params"
+        # Loop through each key in the manifest.json file
+        while IFS= read -r key; do
+          # Extract the api_id for the current key
+          api_id=$(echo "$content" | jq -r ".[\"$key\"].api_id")
+          # Extract the parameters and convert them to a query string format
+          params=$(echo "$content" | jq -r ".[\"$key\"].params | to_entries | map(\"\(.key)=\(.value|tostring)\") | join(\"&\")")
+          
+          # Store the query parameters in the params_array
+          params_array["$key"]="$params"
+          # Store the api_id in the api_ids_array
+          api_ids_array["$key"]="$api_id"
         done < <(jq -r 'keys[]' "manifest.json")
 
-        # Convert output_array to a JSON object
-        json_output="{"
-        for key in "${!output_array[@]}"; do
-          json_output+="\"$key\":\"${output_array[$key]}\","
+        # Initialize a string to hold the JSON output for query parameters
+        json_params="{"
+        # Initialize a string to hold the JSON output for api_ids
+        json_api_ids="{"
+
+        # Construct JSON strings for both query parameters and api_ids
+        for key in "${!params_array[@]}"; do
+          json_params+="\"$key\":\"${params_array[$key]}\","
+          json_api_ids+="\"$key\":\"${api_ids_array[$key]}\","
         done
-        # Remove the trailing comma
-        json_output=${json_output%,}
-        json_output+="}"
-        echo "queryParams=$json_output" >> $GITHUB_OUTPUT
+
+        # Remove the trailing comma from both JSON strings
+        json_params=${json_params%,}
+        json_params+="}"
+
+        json_api_ids=${json_api_ids%,}
+        json_api_ids+="}"
+
+        # Output the variables to $GITHUB_OUTPUT
+        echo "queryParams=$json_params" >> $GITHUB_OUTPUT
+        echo "apiIds=$json_api_ids" >> $GITHUB_OUTPUT
 
     - name: Iterate over committed files and make requests
       env:
@@ -53,6 +76,7 @@ jobs:
         BASE_URL: ${{ secrets.BASE_URL }}
         PARENT_COMMIT_SHA: ${{ steps.get_parent_commit_sha.outputs.parent_commit_sha }}
         QUERY_PARAMS: ${{ steps.extract_query_params.outputs.queryParams }}
+        API_IDS: ${{ steps.extract_query_params.outputs.apiIds }}
       run: |
         echo "Start iterating"
         echo $PARENT_COMMIT_SHA
@@ -81,13 +105,15 @@ jobs:
             fi
             echo "Processing file: $file"
             echo "Filename: $filename"
-            echo "API ID: $apiID"
+            query_params=$(echo "$QUERY_PARAMS" | jq -r ".[\"$filename\"]")
+            echo "QUERY PARAMS"
+            echo $query_params
+            apiID=$(echo "$API_IDS" | jq -r ".[\"$filename\"]")
+            echo "API ID"
+            echo $apiID
             importEndpoint="/api/apis/oas/import"
             endpoint="/api/apis/oas/$apiID"
             echo "Endpoint: $BASE_URL$endpoint"
-            query_params=$(echo "$QUERY_PARAMS" | jq -r ".[\"$apiID\"]")
-            echo "QUERY PARAMS"
-            echo $query_params
           
             # Check if API exists with a GET request
             echo "Sending GET request to $BASE_URL$endpoint"

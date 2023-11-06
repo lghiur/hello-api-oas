@@ -1,5 +1,6 @@
 {
-  "my-api": {
+  "my-api.oas": {
+    "api_id": "prct",
     "params": {
       "listenPath": "/demo",
       "validateRequest": true,
