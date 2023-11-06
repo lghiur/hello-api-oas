@@ -24,48 +24,10 @@ jobs:
         echo "parent_commit_sha=$(git log --pretty=format:%H -n 1)" >> $GITHUB_OUTPUT
 
     - name: Extract query parameters from tyk-manifest.json
-      id: extract_query_params
       run: |
-        content=$(cat "tyk-manifest.json")
-        # Declare an associative array for query parameters
-        declare -A params_array
-        # Declare an associative array for api_ids
-        declare -A api_ids_array
-
-        # Loop through each key in the tyk-manifest.json file
-        while IFS= read -r key; do
-          # Extract the api_id for the current key
-          api_id=$(echo "$content" | jq -r ".[\"$key\"].api_id")
-          # Extract the parameters and convert them to a query string format
-          params=$(echo "$content" | jq -r ".[\"$key\"].params | to_entries | map(\"\(.key)=\(.value|tostring)\") | join(\"&\")")
-          
-          # Store the query parameters in the params_array
-          params_array["$key"]="$params"
-          # Store the api_id in the api_ids_array
-          api_ids_array["$key"]="$api_id"
-        done < <(jq -r 'keys[]' "tyk-manifest.json")
-
-        # Initialize a string to hold the JSON output for query parameters
-        json_params="{"
-        # Initialize a string to hold the JSON output for api_ids
-        json_api_ids="{"
-
-        # Construct JSON strings for both query parameters and api_ids
-        for key in "${!params_array[@]}"; do
-          json_params+="\"$key\":\"${params_array[$key]}\","
-          json_api_ids+="\"$key\":\"${api_ids_array[$key]}\","
-        done
-
-        # Remove the trailing comma from both JSON strings
-        json_params=${json_params%,}
-        json_params+="}"
-
-        json_api_ids=${json_api_ids%,}
-        json_api_ids+="}"
-
-        # Output the variables to $GITHUB_OUTPUT
-        echo "queryParams=$json_params" >> $GITHUB_OUTPUT
-        echo "apiIds=$json_api_ids" >> $GITHUB_OUTPUT
+        output=$(./.github/scripts/extract_query_params.sh)
+        echo "queryParams=$(echo "$output" | head -n 1)" >> $GITHUB_OUTPUT
+        echo "apiIds=$(echo "$output" | tail -n 1)" >> $GITHUB_OUTPUT
 
     - name: Iterate over committed files and make requests
       env:
