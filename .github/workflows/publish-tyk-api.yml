@@ -24,6 +24,7 @@ jobs:
         echo "parent_commit_sha=$(git log --pretty=format:%H -n 1)" >> $GITHUB_OUTPUT
 
     - name: Extract query parameters from tyk-manifest.json
+      id: extract_query_params
       run: ./.github/scripts/extract_query_params.sh
 
     - name: Iterate over committed files and make requests

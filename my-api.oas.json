@@ -5,10 +5,26 @@
         "version": "1.0.0"
     },
     "paths": {
+        "/internal": {
+            "get": {
+                "summary": "Read Hello",
+                "operationId": "read_hello_internal_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {}
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/hello": {
             "get": {
                 "tags": [
-                    "d753e64b-9de8-400a-97b8-df60482d7621"
+                    "85c147ed-fcdc-46b3-8875-496a0cda4dcb"
                 ],
                 "summary": "Read Hello",
                 "operationId": "read_hello_hello_get",
