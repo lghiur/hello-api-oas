@@ -4,11 +4,10 @@
     "params": {
       "base_api_id": "prct",
       "base_api_version_name": "v1",
-      "new_api_version_name": "v2",
+      "new_version_name": "v2",
       "listenPath": "/demo3",
       "validateRequest": true,
-      "allowList": true,
-      "templateID": "65267cd986341fcb72ff20b9"
+      "allowList": true
     }
   },
   "my-api.oas": {
@@ -16,8 +15,7 @@
     "params": {
       "listenPath": "/demo",
       "validateRequest": true,
-      "allowList": true,
-      "templateID": "65267cd986341fcb72ff20b9"
+      "allowList": true
     }
   },
   "my-api-two.oas": {
