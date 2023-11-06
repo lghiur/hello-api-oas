@@ -2,9 +2,6 @@
   "my-api-v2.oas": {
     "api_id": "prctv2",
     "params": {
-      "base_api_id": "prct",
-      "base_api_version_name": "v1",
-      "new_version_name": "v2",
       "listenPath": "/demo3",
       "validateRequest": true,
       "allowList": true
